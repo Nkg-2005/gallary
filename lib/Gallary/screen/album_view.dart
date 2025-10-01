@@ -74,9 +74,28 @@ class _AlbumViewState extends State<AlbumView> {
                         fit: BoxFit.cover
                       ),
                     ),
+                    child: Stack(
+                    children: [
+                    if(_asset.type == AssetType.video)
+                    Positioned(
+                      right: 6,
+                      bottom: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black45,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ),]
+                    ),
                   ),
                 );
-                
               }
               return Container(color: Colors.grey[800]);
             },
