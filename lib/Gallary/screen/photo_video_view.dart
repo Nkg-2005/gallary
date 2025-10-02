@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:video_player/video_player.dart';
@@ -42,12 +43,26 @@ class _PhotoVideoViewState extends State<PhotoVideoView> {
                 );
               }
               if (snapshot.hasData && snapshot.data != null) {
-                return PhotoView(
-                  imageProvider: MemoryImage(snapshot.data!),
-                  enableRotation: true,
-                  backgroundDecoration: const BoxDecoration(
-                    color: Colors.black,
-                  ),
+                return Stack(
+                  children: [
+                    PhotoView(
+                      imageProvider: MemoryImage(snapshot.data!),
+                      enableRotation: true,
+                      backgroundDecoration: const BoxDecoration(
+                        color: Colors.black,
+                      ),
+                    ),
+                    Positioned(
+                      top: 40,
+                      left: 10,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () {
+                          Get.back();
+                        },
+                      ),
+                    ),
+                  ],
                 );
               }
               return const Center(
@@ -170,76 +185,76 @@ class _VideoPageState extends State<VideoPage> {
   }
 
   @override
-@override
-Widget build(BuildContext context) {
-  if (_controller == null || !_controller!.value.isInitialized) {
-    return const Center(
-      child: CircularProgressIndicator(color: Colors.white),
-    );
-  }
+  @override
+  Widget build(BuildContext context) {
+    if (_controller == null || !_controller!.value.isInitialized) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      );
+    }
 
-  final bool isFinished = _controller!.value.duration == _controller!.value.position;
-  final bool shouldShowIcon = !_controller!.value.isPlaying || isFinished;
+    final bool isFinished =
+        _controller!.value.duration == _controller!.value.position;
+    final bool shouldShowIcon = !_controller!.value.isPlaying || isFinished;
 
-  return GestureDetector(
-    behavior: HitTestBehavior.opaque,
-    onTap: () {
-      setState(() => showControls = !showControls);
-      if (showControls && _controller!.value.isPlaying) {
-        _hideControlsAfterDelay();
-      }
-    },
-    child: Stack(
-  fit: StackFit.expand,
-  children: [
-    // Video background
-    Center(
-      child: AspectRatio(
-        aspectRatio: _controller!.value.aspectRatio,
-        child: VideoPlayer(_controller!),
-      ),
-    ),
-    if (showControls)
-      Positioned.fill(
-        child: Container(
-          color: Colors.black.withOpacity(0.2),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (shouldShowIcon)
-                Align(
-                  alignment: Alignment.center,
-                  child: IconButton(
-                    icon: Icon(
-                      isFinished
-                          ? Icons.replay_circle_filled
-                          : Icons.play_circle_fill,
-                      color: Colors.white.withOpacity(0.9),
-                      size: 80,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        setState(() => showControls = !showControls);
+        if (showControls && _controller!.value.isPlaying) {
+          _hideControlsAfterDelay();
+        }
+      },
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Video background
+          Center(
+            child: AspectRatio(
+              aspectRatio: _controller!.value.aspectRatio,
+              child: VideoPlayer(_controller!),
+            ),
+          ),
+          if (showControls)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withOpacity(0.2),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (shouldShowIcon)
+                      Align(
+                        alignment: Alignment.center,
+                        child: IconButton(
+                          icon: Icon(
+                            isFinished
+                                ? Icons.replay_circle_filled
+                                : Icons.play_circle_fill,
+                            color: Colors.white.withOpacity(0.9),
+                            size: 80,
+                          ),
+                          onPressed: _togglePlayPause,
+                        ),
+                      ),
+                    // Controls bar always at bottom
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: _VideoControls(
+                        controller: _controller!,
+                        position: position,
+                        togglePlayPause: _togglePlayPause,
+                        seekForward: _seekForward,
+                        seekBackward: _seekBackward,
+                      ),
                     ),
-                    onPressed: _togglePlayPause,
-                  ),
-                ),
-              // Controls bar always at bottom
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: _VideoControls(
-                  controller: _controller!,
-                  position: position,
-                  togglePlayPause: _togglePlayPause,
-                  seekForward: _seekForward,
-                  seekBackward: _seekBackward,
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
-  ],
-)
-
-  );
-}
+    );
+  }
 }
 
 class _VideoControls extends StatelessWidget {
@@ -271,84 +286,117 @@ class _VideoControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      color: Colors.black54,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.replay_10,
-                  color: Colors.white,
-                  size: 36,
-                ),
-                onPressed: seekBackward,
-              ),
-              IconButton(
-                icon: Icon(
-                  controller.value.isPlaying
-                      ? Icons.pause_circle_filled
-                      : Icons.play_circle_filled,
-                  color: Colors.white,
-                  size: 48,
-                ),
-                onPressed: togglePlayPause,
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.forward_10,
-                  color: Colors.white,
-                  size: 36,
-                ),
-                onPressed: seekForward,
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Text(
-                _formatDuration(position),
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-              ),
-
-              Expanded(
-                child: SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    trackHeight: 2.0,
-                    thumbShape: const RoundSliderThumbShape(
-                      enabledThumbRadius: 6.0,
-                    ),
-                    activeTrackColor: Colors.white,
-                    inactiveTrackColor: Colors.grey.shade600,
-                    thumbColor: Colors.white,
-                  ),
-                  child: Slider(
-                    min: 0.0,
-                    max: controller.value.duration.inMilliseconds.toDouble(),
-                    value: position.inMilliseconds.toDouble().clamp(
-                      0.0,
-                      controller.value.duration.inMilliseconds.toDouble(),
-                    ),
-                    onChanged: (double value) {
-                      final newPosition = Duration(milliseconds: value.round());
-                      controller.seekTo(newPosition);
+    return Stack(
+      children: [
+        Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              color: Colors.black54,
+              padding: const EdgeInsets.only(top: 50),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () {
+                      Get.back();
                     },
                   ),
-                ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.white),
+                    onPressed: () {
+                      // Fullscreen toggle logic can be implemented here
+                    },
+                  ),
+                ],
               ),
-
-              Text(
-                _formatDuration(controller.value.duration),
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          Container(
+            color: Colors.black54,
+            child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.replay_10,
+                      color: Colors.white,
+                      size: 36,
+                    ),
+                    onPressed: seekBackward,
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      controller.value.isPlaying
+                          ? Icons.pause_circle_filled
+                          : Icons.play_circle_filled,
+                      color: Colors.white,
+                      size: 48,
+                    ),
+                    onPressed: togglePlayPause,
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.forward_10,
+                      color: Colors.white,
+                      size: 36,
+                    ),
+                    onPressed: seekForward,
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text(
+                    _formatDuration(position),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+              
+                  Expanded(
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 2.0,
+                        thumbShape: const RoundSliderThumbShape(
+                          enabledThumbRadius: 6.0,
+                        ),
+                        activeTrackColor: Colors.white,
+                        inactiveTrackColor: Colors.grey.shade600,
+                        thumbColor: Colors.white,
+                      ),
+                      child: Slider(
+                        min: 0.0,
+                        max: controller.value.duration.inMilliseconds.toDouble(),
+                        value: position.inMilliseconds.toDouble().clamp(
+                          0.0,
+                          controller.value.duration.inMilliseconds.toDouble(),
+                        ),
+                        onChanged: (double value) {
+                          final newPosition = Duration(
+                            milliseconds: value.round(),
+                          );
+                          controller.seekTo(newPosition);
+                        },
+                      ),
+                    ),
+                  ),
+              
+                  Text(
+                    _formatDuration(controller.value.duration),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ],
               ),
             ],
+                    ),
           ),
-        ],
-      ),
+          ],
+        ),
+                
+        
+      ],
     );
   }
 }
